@@ -10,7 +10,7 @@ from timeit import default_timer as timer
 
 sess = tf.Session()
 graph_def = tf.GraphDef()
-with tf.io.gfile.GFile("./tf_model/model.pb",'rb') as f:
+with tf.io.gfile.GFile("./model_checkpoints/model.pb",'rb') as f:
     graph_def.ParseFromString(f.read())
     sess.graph.as_default()
     tf.import_graph_def(graph_def, name='')
