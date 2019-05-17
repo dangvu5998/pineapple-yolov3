@@ -8,9 +8,10 @@ import time
 from timeit import default_timer as timer
 
 
-sess = tf.Session()
+gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.3)
+sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
 graph_def = tf.GraphDef()
-with tf.io.gfile.GFile("./model_checkpoints/model.pb",'rb') as f:
+with tf.io.gfile.GFile("./model_checkpoints/jetson.pb",'rb') as f:
     graph_def.ParseFromString(f.read())
     sess.graph.as_default()
     tf.import_graph_def(graph_def, name='')
@@ -26,8 +27,8 @@ scores = graph.get_tensor_by_name('scores:0')
 classes = graph.get_tensor_by_name('classes:0')
 input_image_shape = graph.get_tensor_by_name('Placeholder_366:0')
 
-testData = '../new_data/samples'
-resultData = '../new_data/result_samples'
+testData = '/home/nvidia/vudt/dua/images/'
+resultData = '/home/nvidia/vudt/dua/result'
 classes_path = 'model_data/pineapple_classes.txt'
 classes_path = os.path.expanduser(classes_path)
 
@@ -44,7 +45,7 @@ colors = list(
 
 def detect_image(image, image_name): 
     
-    f = open('../new_data/result_samples/'+image_name[:-5]+'.txt','w')
+    f = open(testData+image_name[:-5]+'.txt','w')
 
     boxed_image = letterbox_image(image, (416, 416))
     image_data = np.array(boxed_image, dtype='float32')
@@ -115,4 +116,4 @@ for img in os.listdir(testData):
         else:
             r_image = detect_image(image, img)
 #            r_image.show()
-#            r_image.save(os.path.join(resultData, img))
+            r_image.save(os.path.join(resultData, img))

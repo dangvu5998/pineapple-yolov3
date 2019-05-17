@@ -5,9 +5,9 @@ from pathlib import Path
 from absl import app
 from absl import flags
 from absl import logging
-import keras
-from keras import backend as K
-from keras.models import model_from_json, model_from_yaml
+import tensorflow.keras as keras
+from tensorflow.keras import backend as K
+from tensorflow.keras.models import model_from_json, model_from_yaml
 from yolo import YOLO
 
 K.set_learning_phase(0)
@@ -50,7 +50,7 @@ def main(args):
     # Create output directory if it does not exist
     Path(output_model).parent.mkdir(parents=True, exist_ok=True)
 
-    yolo = YOLO()
+    yolo = YOLO(model_path=FLAGS.input_model)
     sess = yolo.sess
     image_data = yolo.yolo_model.input
     print("Input image data", image_data)
@@ -78,7 +78,8 @@ def main(args):
              'strip_unused_nodes',
              'fold_constants(ignore_errors=true)',
              'fold_batch_norms',
-             'quantize_weights']
+             'quantize_weights',
+             'quantize_node']
         # TODO: add 'quantize_node' to transforms
         transformed_graph_def = TransformGraph(sess.graph.as_graph_def(), [],
                                                converted_output_node_names,
