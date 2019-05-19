@@ -25,6 +25,14 @@ python yolo_video.py [video_path] [output_path (optional)]
 For Tiny YOLOv3, just do in a similar way, just specify model path and anchor path with `--model model_file` and `--anchors anchor_file`.
 
 ### Usage
+Convert keras model to tensorflow model:
+```
+python convert_keras_to_tf.py --input_model path/to/model.h5 --output_model path/to/model.pb --quantize
+```
+Test .pb model:
+```
+python tf_image_detection.py --model_path path/to/model.pb --image_directory path/to/image_directory --result_directory path/to/result/directory
+```
 Use --help to see usage of yolo_video.py:
 ```
 usage: yolo_video.py [-h] [--model MODEL] [--anchors ANCHORS]

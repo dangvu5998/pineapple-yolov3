@@ -1,5 +1,6 @@
 import os
 import tensorflow as tf
+import argparse
 from PIL import Image, ImageFont, ImageDraw
 import colorsys
 import numpy as np
@@ -7,19 +8,21 @@ from yolo3.utils import letterbox_image
 import time
 from timeit import default_timer as timer
 
-
+parser = argparse.ArgumentParser()
+parser.add_argument('--image_directory')
+parser.add_argument('--result_directory')
+parser.add_argument('--model_path')
+args = parser.parse_args()
+image_directory = args.image_directory
+result_directory = args.result_directory
+model_path = args.model_path
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.3)
 sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
 graph_def = tf.GraphDef()
-with tf.io.gfile.GFile("./model_checkpoints/jetson.pb",'rb') as f:
+with tf.io.gfile.GFile(model_path,'rb') as f:
     graph_def.ParseFromString(f.read())
     sess.graph.as_default()
     tf.import_graph_def(graph_def, name='')
-    # Print all operation names
-    for op in sess.graph.get_operations():
-        if 'input' in op.name or op.name in ['boxes', 'scores', 'classes']:
-            print(op.name)
-            print(op)
 graph = tf.get_default_graph()
 image_input = graph.get_tensor_by_name('input_1:0')
 boxes = graph.get_tensor_by_name('boxes:0')
@@ -27,10 +30,7 @@ scores = graph.get_tensor_by_name('scores:0')
 classes = graph.get_tensor_by_name('classes:0')
 input_image_shape = graph.get_tensor_by_name('Placeholder_366:0')
 
-testData = '/home/nvidia/vudt/dua/images/'
-resultData = '/home/nvidia/vudt/dua/result'
 classes_path = 'model_data/pineapple_classes.txt'
-classes_path = os.path.expanduser(classes_path)
 
 with open(classes_path) as f:
     class_names = f.readlines()
@@ -44,13 +44,8 @@ colors = list(
                 colors))
 
 def detect_image(image, image_name): 
-    
-    f = open(testData+image_name[:-5]+'.txt','w')
-
     boxed_image = letterbox_image(image, (416, 416))
     image_data = np.array(boxed_image, dtype='float32')
-
-    print(image_data.shape)
     image_data /= 255.
     image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
 
@@ -62,9 +57,7 @@ def detect_image(image, image_name):
             input_image_shape: [image.size[1], image.size[0]],
         })
     end = timer()
-    print(end - start)
-
-    print('Found {} boxes for {}'.format(len(out_boxes), 'img'))
+    print('Detection time:', end-start)
 
     font = ImageFont.truetype('Pillow/Tests/fonts/FreeMono.ttf', size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
     thickness = (image.size[0] + image.size[1]) // 300
@@ -85,8 +78,6 @@ def detect_image(image, image_name):
         right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
 
         pos = '{} {} {} {}\n'.format(left, top, right, bottom)
-        f.write(label + ' ' + pos)
-        print(label, (left, top), (right, bottom))
         if top - label_size[1] >= 0:
             text_origin = np.array([left, top - label_size[1]])
         else:
@@ -102,18 +93,16 @@ def detect_image(image, image_name):
             fill=colors[c])
         draw.text(text_origin, label, fill=(0, 0, 0), font=font)
         del draw
-    f.close()
     return image
-for img in os.listdir(testData):
+for img in os.listdir(image_directory):
     if img.endswith('.jpeg'):
         print(img)
         try:
-            image = Image.open(os.path.join(testData,img))
+            image = Image.open(os.path.join(image_directory,img))
         except:
             print()
             print('Open Error! Try again!')
             continue
         else:
             r_image = detect_image(image, img)
-#            r_image.show()
-            r_image.save(os.path.join(resultData, img))
+            r_image.save(os.path.join(result_directory, img))
