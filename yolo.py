@@ -99,6 +99,47 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
+    #raw detect image
+    def raw_detect_image(self, image):
+
+        if self.model_image_size != (None, None):
+            assert self.model_image_size[0]%32 == 0, 'Multiples of 32 required'
+            assert self.model_image_size[1]%32 == 0, 'Multiples of 32 required'
+            boxed_image = letterbox_image(image, tuple(reversed(self.model_image_size)))
+            print(tuple(reversed(self.model_image_size)))
+        else:
+            new_image_size = (image.width - (image.width % 32),
+                              image.height - (image.height % 32))
+            boxed_image = letterbox_image(image, new_image_size)
+        image_data = np.array(boxed_image, dtype='float32')
+
+        print(image_data.shape)
+        image_data /= 255.
+        image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
+
+        # start = timer()
+        out_boxes, out_scores, out_classes = self.sess.run(
+            [self.boxes, self.scores, self.classes],
+            feed_dict={
+                self.yolo_model.input: image_data,
+                self.input_image_shape: [image.size[1], image.size[0]],
+                K.learning_phase(): 0
+            })
+        # end = timer()
+
+        data = {}
+        data['length'] = len(out_boxes)
+        data['object'] = []
+        for i, c in reversed(list(enumerate(out_classes))):
+            tmp_object = {}
+            tmp_object['class'] = c
+            tmp_object['score'] = out_scores[i]
+            box = {}
+            box['top'], box['left'], box['bottom'], box['right'] = out_boxes[i]
+            tmp_object['box'] = box
+            data['object'].append(tmp_object)
+        return data
+
     #img is name of image
     def detect_image(self, image, img): 
         
