@@ -61,3 +61,5 @@ coverage.xml
 *.mo
 *.pot
 
+# Vs code
+.vscode

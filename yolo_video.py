@@ -75,6 +75,7 @@ if __name__ == '__main__':
     )
 
     FLAGS = parser.parse_args()
+    print(FLAGS)
 
     if FLAGS.image:
         """

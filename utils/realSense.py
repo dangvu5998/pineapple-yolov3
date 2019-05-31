@@ -4,41 +4,40 @@ import cv2
 import time
 
 class realSenseStream():
-	
-	def __init__(self):
-		super().__init__()
-		self.loop = True
-		self.config = rs.config()
-		self.pipeline = rs.pipeline()
-		self.pv_width = 1920
-		self.pv_height = 1080
-		self.size_config(self.pv_width, self.pv_height)
+    def __init__(self, path = './', w = 1920, h = 1080):
+        super().__init__()
+        self.config = rs.config() # Assign to realsense configuration
+        self.pipeline = rs.pipeline() # Assign to realsense pipeline
+        self.path = path
+        if self.path[-1] != '/':
+            self.path = self.path + '/'
+        self.pv_width = w
+        self.pv_height = h
+        self.size_config(self.pv_width, self.pv_height)
+        self.pipeline.start(self.config)
         
-	def size_config(self, w, h):
-		self.config.enable_stream(rs.stream.color, w, h, rs.format.bgr8, 30)
+    def size_config(self, w, h):
+        self.config.enable_stream(rs.stream.color, w, h, rs.format.bgr8, 30)
 
-	def save_image(self, name):
-		while True:
-			frames = self.pipeline.wait_for_frames()
-			color_frame = frames.get_color_frame()
+    def take_image(self):
+        while True:
+            frames = self.pipeline.wait_for_frames()
+            color_frame = frames.get_color_frame()
 
-			if not color_frame:
-				continue
-			# Convert images to numpy arrays	
-			color_image = np.asanyarray(color_frame.get_data())
-			cv2.imwrite('./' + name + '.jpeg', color_image)
-			cv2.waitKey(30)
-			break
+            if not color_frame:
+                continue
+            # Convert images to numpy arrays
+            color_image = np.asanyarray(color_frame.get_data())
+            imgName = self.path + str(int(time.time()*1000.0)) + '.jpeg'
+            cv2.imwrite(imgName, color_image)
+            cv2.waitKey(30)
+            return imgName, color_image
 
-	def open_camera_stream(self):
-		self.pipeline.start(self.config)
+    def __del__(self):
+        self.pipeline.stop()
 
-	def close_camera_stream(self):
-		self.pipeline.stop()
-
-rss = realSenseStream()
-rss.open_camera_stream()
-for i in range(10):
-	rss.save_image(str(i))
-	time.sleep(1)
-rss.close_camera_stream()
+if __name__ == '__main__':
+    rss = realSenseStream('img')
+    for i in range(10):
+        rss.take_image()
+        time.sleep(1)

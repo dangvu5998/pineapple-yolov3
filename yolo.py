@@ -129,13 +129,15 @@ class YOLO(object):
 
         data = {}
         data['length'] = len(out_boxes)
-        data['object'] = []
+        data['objects'] = []
         for i, c in reversed(list(enumerate(out_classes))):
             tmp_object = {}
             tmp_object['class'] = c
             tmp_object['score'] = out_scores[i]
             box = {}
-            box['top'], box['left'], box['bottom'], box['right'] = out_boxes[i]
+            box['x'] = (out_boxes[i][1] + out_boxes[i][3]) / 2
+            box['y'] = (out_boxes[i][0] + out_boxes[i][2]) / 2
+            # box['top'], box['left'], box['bottom'], box['right'] = out_boxes[i]
             tmp_object['box'] = box
             data['object'].append(tmp_object)
         return data
