@@ -33,7 +33,7 @@ class realSenseStream():
             cv2.waitKey(30)
             return imgName, color_image
 
-    def __del__(self):
+    def __exit__(self):
         self.pipeline.stop()
 
 if __name__ == '__main__':
