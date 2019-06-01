@@ -1,0 +1,8 @@
+
+# Python modules
+tensorflow-gpu==1.12.0
+keras
+pillow
+matplotlib
+pyrealsense2
+opencv-python
