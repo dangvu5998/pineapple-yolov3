@@ -137,9 +137,9 @@ class YOLO(object):
             box = {}
             box['x'] = (out_boxes[i][1] + out_boxes[i][3]) / 2
             box['y'] = (out_boxes[i][0] + out_boxes[i][2]) / 2
-            # box['top'], box['left'], box['bottom'], box['right'] = out_boxes[i]
+            box['top'], box['left'], box['bottom'], box['right'] = out_boxes[i]
             tmp_object['box'] = box
-            data['object'].append(tmp_object)
+            data['objects'].append(tmp_object)
         return data
 
     #img is name of image
