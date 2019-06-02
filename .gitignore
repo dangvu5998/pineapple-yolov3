@@ -2,6 +2,7 @@ model_checkpoints/
 *.swp
 *.jpg
 *.png
+*.jpeg
 *.weights
 *.h5
 logs/
