@@ -1,33 +1,45 @@
-import numpy as np
-import math
-from math import cos, sin
-from serial import Serial
+from math import sin, cos, tan, atan, sqrt, radians
 
-ser = Serial("COM1", 9600)
-ser.begin()
+imgw = 1920
+imgh = 1080
 
-def to_coord(x, y):	
-	fx = 0.00193
-	fy = 0.00193
-	(a, b, g) = (0, 0, 0)
+a = radians(42.5) # camera vertical view angle +/-3
+b = radians(69.4) # camera horizontal view angle +/-3
+aGAO = radians(39) # camera optical angle (to z-axis)
 
-	ca = cos(a)
-	sa = sin(a)
+AO = 80 # distance from camera to ground
+CO = tan(aGAO - a/2)*AO
 
-	cb = cos(b)
-	sb = sin(b)
+AC = sqrt(AO*AO + CO*CO)
 
-	cg = cos(g)
-	sg = sin(g)
+AF = cos(a/2)*AC
+AG = AO/cos(aGAO) # optical line
 
-	pixelMat = np.matrix([[x], [y], [1]])
-	transfromedMat = np.matrix([[fx, 0, 0], [0, fy, 0], [0, 0, 1]])
-	orientedMat = np.matrix(
-	  [[1 + cb + cg, -sg, sb],
-	   [sg, ca + 1 + cg, -sa],
-	   [-sb, sa, ca + cb + 1]])
-	tMat = np.linalg.inv(transfromedMat*orientedMat)*pixelMat
+# trapezium to triangle angle
 
-	ser.print(tMat[0]/tMat[2])
-	ser.print(',')
-	ser.printline(tMat[1]/tMat[2])
+GO = tan(aGAO)*AO
+RO = AO/tan(aGAO)
+
+PQ = 2*tan(b/2)*AF # PQ get through F
+
+CD = 2*sin(a/2)*AC
+
+def to_coord(x, y):
+	x = x - imgw/2
+	y = imgh/2 - y
+
+	rx, ry = 0, 0
+
+	HF = y/imgh*CD
+	aGAE = atan(HF/AF)
+	aEAO = aGAO + aGAE if y >= 0 else aGAO - aGAE
+	EO = tan(aEAO)*AO
+	ry = EO
+
+	imX = x/imgw*(AG*PQ/AF)
+	rx = imX*(EO + RO)/(GO + RO)
+	print ('Camera POV:', rx, ry)
+	return rx, ry
+
+if __name__ == '__main__':
+	to_coord(300, 300)

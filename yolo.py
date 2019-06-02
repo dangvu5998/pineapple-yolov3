@@ -23,7 +23,7 @@ class YOLO(object):
         "model_path": 'trained.h5',
         "anchors_path": 'model_data/yolo_anchors.txt',
         "classes_path": 'model_data/pineapple_classes.txt',
-        "score" : 0.3,
+        "score" : 0.15,
         "iou" : 0.45,
         "model_image_size" : (416, 416),
         "gpu_num" : 1,
