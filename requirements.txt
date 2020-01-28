@@ -1,6 +1,6 @@
 
 # Python modules
-tensorflow-gpu==1.12.0
+tensorflow-gpu==1.15.2
 keras
 pillow
 matplotlib
